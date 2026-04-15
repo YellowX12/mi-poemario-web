@@ -2,6 +2,7 @@
 import { obtenerSesion, borrarSesion, esAdmin } from '../lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import AuthorFilter from './components/AuthorFilter';
 
 interface Poema {
     id: number;
@@ -21,6 +22,11 @@ export default async function Home() {
     const [filas] = await db.query(query, params) as [Poema[], unknown];
     const poemas = filas;
 
+    // Obtener lista de autores únicos
+    const autoresUnicos = Array.from(
+        new Set(poemas.map(p => p.autor || `Usuario ${p.user_id}`))
+    ).sort();
+
     async function cerrarSesion() {
         "use server";
         await borrarSesion();
@@ -35,8 +41,7 @@ export default async function Home() {
         const sesion = await obtenerSesion();
         if (!sesion) return;
 
-        // Verificar permisos
-        const [poemasCheck] = await db.query('SELECT user_id FROM poemas WHERE id = ?', [id]) as [{ user_id: number }[], unknown];
+        const [poemasCheck] = await db.query('SELECT * FROM poemas WHERE id = ?', [id]) as [Poema[], unknown];
         const poema = poemasCheck[0];
         if (!poema) return;
 
@@ -90,36 +95,13 @@ export default async function Home() {
                         )}
                     </div>
                 ) : (
-                    poemas.map((poema) => (
-                        <article key={poema.id} className="poema-card">
-                            <div className="poema-card-header">
-                                <h2 className="titulo-tarjeta">{poema.titulo}</h2>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    {sesion && (poema.user_id === parseInt(sesion.userId as string) || admin) && (
-                                        <>
-                                            <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
-                                            <form action={borrarPoema} style={{ display: 'inline' }}>
-                                                <input type="hidden" name="id" value={poema.id} />
-                                                <button type="submit" className="boton boton-mini" style={{ backgroundColor: '#dc3545' }}>Borrar</button>
-                                            </form>
-                                        </>
-                                    )}
-                                    {sesion && poema.user_id !== parseInt(sesion.userId as string) && !admin && (
-                                        <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Solo {poema.autor || 'el autor'} puede editar</span>
-                                    )}
-                                    {!sesion && (
-                                        <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Editar (requiere login)</span>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="poema-meta" style={{ fontSize: '0.9rem', color: '#8a7968', marginBottom: '10px' }}>
-                                Por: {poema.autor || `Usuario ${poema.user_id}`}
-                            </div>
-                            <div className="versos">
-                                <p className="texto-poema">{poema.contenido}</p>
-                            </div>
-                        </article>
-                    ))
+                    <AuthorFilter 
+                        poemasData={poemas}
+                        autores={autoresUnicos}
+                        sesion={sesion}
+                        admin={admin}
+                        borrarPoema={borrarPoema}
+                    />
                 )}
             </section>
         </main>
