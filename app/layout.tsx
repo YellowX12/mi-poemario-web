@@ -34,6 +34,10 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <Navbar usuario={usuario} />
         {children}
+        <footer className="text-center text-sm text-slate-500 mt-8 py-6">
+          <p>© {new Date().getFullYear()} Codexia. Todos los derechos reservados.</p>
+          <p>Desarrollado para Mi Poemario con tecnología Next.js y MySQL.</p>
+        </footer>
       </body>
     </html>
   );
