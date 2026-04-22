@@ -16,7 +16,7 @@ export default async function Home() {
     const sesion = await obtenerSesion();
     const admin = sesion ? await esAdmin() : false;
     // Siempre obtener el autor con JOIN, tanto con como sin sesión
-    const query = 'SELECT p.*, u.nombre as autor FROM poemas p LEFT JOIN usuarios u ON p.user_id = u.id ORDER BY p.id ASC';
+    const query = 'SELECT p.*, u.nombre as autor FROM poemas p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.id ASC';
     const params: unknown[] = [];
 
     const [filas] = await db.query(query, params) as [Poema[], unknown];

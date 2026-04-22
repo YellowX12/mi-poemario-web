@@ -35,7 +35,7 @@ export default async function Perfil({ searchParams }: PerfilProps) {
 
         // Verificar si el email ya existe (si cambió)
         if (email !== sesionUsuario.email) {
-            const [existing] = await db.query('SELECT id FROM usuarios WHERE email = ? AND id != ?', [email, sesionUsuario.id]) as [{ id: number }[], unknown];
+            const [existing] = await db.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, sesionUsuario.id]) as [{ id: number }[], unknown];
             if (existing.length > 0) {
                 redirect('/perfil?error=1');
             }
@@ -44,7 +44,7 @@ export default async function Perfil({ searchParams }: PerfilProps) {
         // Si se quiere cambiar contraseña
         if (passNueva) {
             // Verificar contraseña actual
-            const [userDb] = await db.query<Usuario[]>('SELECT password FROM usuarios WHERE id = ?', [sesionUsuario.id]);
+            const [userDb] = await db.query<Usuario[]>('SELECT password FROM users WHERE id = ?', [sesionUsuario.id]);
             const user = userDb[0];
             if (!user || !await bcrypt.compare(passActual, user.password)) {
                 redirect('/perfil?error=1');
@@ -59,13 +59,13 @@ export default async function Perfil({ searchParams }: PerfilProps) {
             const hashedNueva = await bcrypt.hash(passNueva, 10);
 
             await db.query(
-                'UPDATE usuarios SET nombre = ?, email = ?, password = ? WHERE id = ?',
+                'UPDATE users SET nombre = ?, email = ?, password = ? WHERE id = ?',
                 [nombre, email, hashedNueva, sesionUsuario.id]
             );
         } else {
             // Solo actualizar nombre y email
             await db.query(
-                'UPDATE usuarios SET nombre = ?, email = ? WHERE id = ?',
+                'UPDATE users SET nombre = ?, email = ? WHERE id = ?',
                 [nombre, email, sesionUsuario.id]
             );
         }

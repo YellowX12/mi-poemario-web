@@ -37,7 +37,7 @@ export async function obtenerSesion() {
 export async function obtenerUsuario() {
     const session = await obtenerSesion();
     if (!session) return null;
-    const [usuarios] = await db.query<Usuario[]>('SELECT id, nombre, email FROM usuarios WHERE id = ?', [session.userId]);
+    const [usuarios] = await db.query<Usuario[]>('SELECT id, nombre, email FROM users WHERE id = ?', [session.userId]);
     return usuarios[0] || null;
 }
 

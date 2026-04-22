@@ -18,7 +18,7 @@ export default async function Registro({ searchParams }: RegistroProps) {
         const pass = formData.get('password')?.toString() ?? '';
 
         // Verificar si el email ya existe
-        const [existing] = await db.query('SELECT id FROM usuarios WHERE email = ?', [email]) as [{ id: number }[], unknown];
+        const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]) as [{ id: number }[], unknown];
         if (existing.length > 0) {
             redirect('/registro?error=1');
         }
@@ -27,7 +27,7 @@ export default async function Registro({ searchParams }: RegistroProps) {
         const hashedPass = await bcrypt.hash(pass, 10);
 
         await db.query(
-            'INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)',
+            'INSERT INTO users (nombre, email, password) VALUES (?, ?, ?)',
             [nombre, email, hashedPass]
         );
         redirect('/login');

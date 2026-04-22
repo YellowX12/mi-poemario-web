@@ -24,14 +24,14 @@ export default async function Login({ searchParams }: LoginProps) {
         try {
             const hashedAdminPass = await bcrypt.hash('admin', 10);
             await db.query(
-                'INSERT IGNORE INTO usuarios (nombre, email, password) VALUES (?, ?, ?)',
+                'INSERT IGNORE INTO users (nombre, email, password) VALUES (?, ?, ?)',
                 ['Admin', 'admi@admid.com', hashedAdminPass]
             );
         } catch {
             
         }
 
-        const [usuarios] = await db.query<Usuario[]>('SELECT * FROM usuarios WHERE email = ?', [email]);
+        const [usuarios] = await db.query<Usuario[]>('SELECT * FROM users WHERE email = ?', [email]);
         const usuario = usuarios[0];
 
         if (usuario && await bcrypt.compare(pass, usuario.password)) {
