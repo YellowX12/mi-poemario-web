@@ -8,12 +8,13 @@ import { RowDataPacket } from 'mysql2';
 type Usuario = RowDataPacket & { id: number; nombre: string; email: string; password: string };
 
 type PerfilProps = {
-    searchParams?: Promise<{ error?: string }>;
+    searchParams?: { error?: string; success?: string };
 };
 
 export default async function Perfil({ searchParams }: PerfilProps) {
-    const params = await searchParams;
-    const error = params?.error === '1';
+    const params = searchParams ?? {};
+    const error = params.error;
+    const success = params.success === '1';
 
     const usuario = await obtenerUsuario();
     if (!usuario) {
@@ -22,8 +23,8 @@ export default async function Perfil({ searchParams }: PerfilProps) {
 
     async function actualizarPerfil(formData: FormData) {
         "use server";
-        const nombre = formData.get('nombre')?.toString() ?? '';
-        const email = formData.get('email')?.toString() ?? '';
+        const nombre = formData.get('nombre')?.toString().trim() ?? '';
+        const email = formData.get('email')?.toString().trim() ?? '';
         const passActual = formData.get('password_actual')?.toString() ?? '';
         const passNueva = formData.get('password_nueva')?.toString() ?? '';
         const passConfirm = formData.get('password_confirm')?.toString() ?? '';
@@ -31,6 +32,14 @@ export default async function Perfil({ searchParams }: PerfilProps) {
         const sesionUsuario = await obtenerUsuario();
         if (!sesionUsuario) {
             redirect('/login');
+        }
+
+        if (!nombre || !email) {
+            redirect('/perfil?error=2');
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            redirect('/perfil?error=3');
         }
 
         // Verificar si el email ya existe (si cambió)
@@ -43,16 +52,20 @@ export default async function Perfil({ searchParams }: PerfilProps) {
 
         // Si se quiere cambiar contraseña
         if (passNueva) {
+            if (!passActual) {
+                redirect('/perfil?error=4');
+            }
+
             // Verificar contraseña actual
             const [userDb] = await db.query<Usuario[]>('SELECT password FROM users WHERE id = ?', [sesionUsuario.id]);
             const user = userDb[0];
             if (!user || !await bcrypt.compare(passActual, user.password)) {
-                redirect('/perfil?error=1');
+                redirect('/perfil?error=5');
             }
 
             // Verificar que las nuevas coincidan
             if (passNueva !== passConfirm) {
-                redirect('/perfil?error=1');
+                redirect('/perfil?error=6');
             }
 
             // Encriptar nueva contraseña
@@ -70,7 +83,7 @@ export default async function Perfil({ searchParams }: PerfilProps) {
             );
         }
 
-        redirect('/');
+        redirect('/perfil?success=1');
     }
 
     return (
@@ -115,9 +128,39 @@ export default async function Perfil({ searchParams }: PerfilProps) {
                     />
                     <button type="submit">Actualizar Perfil</button>
                 </form>
-                {error && (
+                {success && (
+                    <p style={{ color: '#1f7a3d', marginTop: '16px', textAlign: 'center' }}>
+                        Perfil actualizado correctamente.
+                    </p>
+                )}
+                {error === '1' && (
                     <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
-                        Error al actualizar. Verifica los datos.
+                        El correo ya está en uso por otro usuario.
+                    </p>
+                )}
+                {error === '2' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        Nombre y correo son obligatorios.
+                    </p>
+                )}
+                {error === '3' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        El correo no tiene un formato válido.
+                    </p>
+                )}
+                {error === '4' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        Debes escribir tu contraseña actual para cambiar la contraseña.
+                    </p>
+                )}
+                {error === '5' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        La contraseña actual no es correcta.
+                    </p>
+                )}
+                {error === '6' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        Las contraseñas nuevas no coinciden.
                     </p>
                 )}
                 <p className="form-footer"><Link href="/">Volver al inicio</Link></p>

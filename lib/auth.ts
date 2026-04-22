@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { db } from './db';
 import { RowDataPacket } from 'mysql2';
 
-const KEY = new TextEncoder().encode('tu_clave_secreta_super_segura');
+const SECRET = process.env.SESSION_SECRET ?? 'tu_clave_secreta_super_segura';
+const KEY = new TextEncoder().encode(SECRET);
 
 type Usuario = RowDataPacket & { id: number; nombre: string; email: string; password: string };
 
@@ -18,6 +19,7 @@ export async function crearSesion(userId: string) {
     (await cookies()).set('session', session, {
         expires,
         httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
     });

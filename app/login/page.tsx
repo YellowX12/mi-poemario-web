@@ -8,19 +8,23 @@ import { RowDataPacket } from 'mysql2';
 type Usuario = RowDataPacket & { id: number; email: string; password: string };
 
 type LoginProps = {
-    searchParams?: Promise<{ error?: string }>;
+    searchParams?: { error?: string; success?: string };
 };
 
 export default async function Login({ searchParams }: LoginProps) {
-    const params = await searchParams;
-    const error = params?.error === '1';
+    const params = searchParams ?? {};
+    const error = params.error;
+    const success = params.success === '1';
 
     async function iniciarSesion(formData: FormData) {
         "use server";
-        const email = formData.get('email')?.toString() ?? '';
+        const email = formData.get('email')?.toString().trim() ?? '';
         const pass = formData.get('password')?.toString() ?? '';
 
-        // Crear usuario admin de ejemplo si no existe
+        if (!email || !pass) {
+            redirect('/login?error=2');
+        }
+
         try {
             const hashedAdminPass = await bcrypt.hash('admin', 10);
             await db.query(
@@ -28,7 +32,7 @@ export default async function Login({ searchParams }: LoginProps) {
                 ['Admin', 'admi@admid.com', hashedAdminPass]
             );
         } catch {
-            
+            // No detener el inicio de sesión si falla la creación de usuario admin.
         }
 
         const [usuarios] = await db.query<Usuario[]>('SELECT * FROM users WHERE email = ?', [email]);
@@ -56,12 +60,22 @@ export default async function Login({ searchParams }: LoginProps) {
                     <input type="password" name="password" placeholder="Contraseña" required />
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                         <button type="submit">Entrar al Panel</button>
-                        {error && <button type="reset" style={{ backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '999px', padding: '14px 18px', cursor: 'pointer', fontWeight: '700' }}>Limpiar</button>}
+                        {(error || success) && <button type="reset" style={{ backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '999px', padding: '14px 18px', cursor: 'pointer', fontWeight: '700' }}>Limpiar</button>}
                     </div>
                 </form>
-                {error && (
+                {success && (
+                    <p style={{ color: '#1f7a3d', marginTop: '16px', textAlign: 'center' }}>
+                        Registro completado. Ingresa con tu correo y contraseña.
+                    </p>
+                )}
+                {error === '1' && (
                     <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
                         Credenciales incorrectas. Verifica tu correo y contraseña.
+                    </p>
+                )}
+                {error === '2' && (
+                    <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                        Debes llenar el email y la contraseña para iniciar sesión.
                     </p>
                 )}
                 <p className="form-footer">¿No tienes cuenta? <Link href="/registro">Regístrate</Link></p>

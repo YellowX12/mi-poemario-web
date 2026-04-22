@@ -2,21 +2,32 @@
 import { redirect } from 'next/navigation';
 import { obtenerSesion } from '../../lib/auth';
 
-export default async function EscribirPoema() {
+type EscribirProps = {
+    searchParams?: { error?: string };
+};
+
+export default async function EscribirPoema({ searchParams }: EscribirProps) {
     const sesion = await obtenerSesion();
 
     if (!sesion) {
         redirect('/login');
     }
 
+    const params = searchParams ?? {};
+    const error = params.error === '1';
+
     async function guardarPoema(formData: FormData) {
         "use server";
-        const titulo = formData.get('titulo');
-        const contenido = formData.get('contenido');
+        const titulo = formData.get('titulo')?.toString().trim() ?? '';
+        const contenido = formData.get('contenido')?.toString().trim() ?? '';
         const sesion = await obtenerSesion();
 
         if (!sesion) {
             redirect('/login');
+        }
+
+        if (!titulo || !contenido) {
+            redirect('/escribir?error=1');
         }
 
         await db.query(
@@ -50,6 +61,11 @@ export default async function EscribirPoema() {
                         required
                         rows={15}
                     />
+                    {error && (
+                        <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
+                            El título y el contenido son obligatorios para publicar.
+                        </p>
+                    )}
                     <button type="submit">Publicar Poema</button>
                 </form>
             </div>
