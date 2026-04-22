@@ -8,6 +8,9 @@ export const db = mysql.createPool({
   database: process.env.MYSQL_DATABASE,
   port: parseInt(process.env.MYSQL_PORT as string),
   ssl: {
-    rejectUnauthorized: true
-  }
+// Esto evita que Vercel aborte al no tener el certificado físico de Aiven
+    rejectUnauthorized: false 
+  },
+  // Le da a Vercel 10 segundos extra para negociar la conexión
+  connectTimeout: 10000 
 });
