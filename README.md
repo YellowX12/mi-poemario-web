@@ -22,7 +22,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Environment configuration
 
-Create a `.env.local` file in the project root with the following values:
+Create a `.env.local` file in the project root with the following values. You can use `env.example` as a template:
 
 ```env
 MYSQL_HOST=localhost
