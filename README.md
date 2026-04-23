@@ -103,6 +103,38 @@ CREATE TABLE comentarios (
 );
 ```
 
+## Security Features
+
+This application includes comprehensive security measures to protect content:
+
+### Anti-Copy/Paste Protection
+- **Text Selection Disabled**: Content cannot be selected or copied
+- **Context Menu Disabled**: Right-click menu is blocked
+- **Keyboard Shortcuts Blocked**: Ctrl+C, Ctrl+V, Ctrl+X are prevented
+- **Print Screen Disabled**: PrintScreen key is blocked
+
+### Anti-Screenshot Protection
+- **CSS Anti-Capture**: Uses CSS tricks to make screenshots unusable
+- **Blur Effects**: Content blurs when window loses focus or visibility changes
+- **Watermark Overlay**: Semi-transparent watermark covers all content
+- **Print Prevention**: Print dialogs are blocked
+
+### Anti-Recording Protection
+- **Screen Recording Detection**: Attempts to detect screen recording software
+- **Viewport Monitoring**: Detects unusual window size changes
+- **Iframe Prevention**: Blocks embedding in other websites
+
+### Developer Tools Protection
+- **F12 Key Disabled**: Developer tools cannot be opened
+- **Ctrl+Shift+I Disabled**: Inspect element is blocked
+
+### Content Protection
+- **Selective Text Selection**: Poems can only be selected when fully expanded
+- **Drag Prevention**: Elements cannot be dragged
+- **Touch Callout Disabled**: Prevents iOS callouts
+
+⚠️ **Note**: While these measures provide significant protection, they cannot completely prevent determined users from capturing content using advanced techniques or external hardware.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

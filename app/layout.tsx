@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { obtenerUsuario } from "../lib/auth";
 import Navbar from "./components/Navbar";
+import SecurityProvider from "./components/SecurityProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,12 +33,14 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar usuario={usuario} />
-        {children}
-        <footer className="text-center text-sm text-slate-500 mt-8 py-6">
-          <p>© {new Date().getFullYear()} Codexia. Todos los derechos reservados.</p>
-          <p>Desarrollado para Mi Poemario con tecnología Next.js y MySQL.</p>
-        </footer>
+        <SecurityProvider>
+          <Navbar usuario={usuario} />
+          {children}
+          <footer className="text-center text-sm text-slate-500 mt-8 py-6">
+            <p>© {new Date().getFullYear()} Codexia. Todos los derechos reservados.</p>
+            <p>Desarrollado para Mi Poemario con tecnología Next.js y MySQL.</p>
+          </footer>
+        </SecurityProvider>
       </body>
     </html>
   );

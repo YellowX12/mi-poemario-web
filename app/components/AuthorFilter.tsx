@@ -163,9 +163,18 @@ export default function AuthorFilter({
                                     Por: {poema.autor || `Usuario ${poema.user_id}`}
                                 </div>
                                 <div className="versos">
-                                    <p className="texto-poema" style={{ whiteSpace: 'pre-line' }}>{contentToShow}</p>
+                                    <p
+                                        className="texto-poema"
+                                        style={{
+                                            whiteSpace: 'pre-line',
+                                            userSelect: isExpanded ? 'text' : 'none',
+                                            WebkitUserSelect: isExpanded ? 'text' : 'none'
+                                        }}
+                                    >
+                                        {contentToShow}
+                                    </p>
                                     {needsTruncation && (
-                                        <button 
+                                        <button
                                             onClick={() => toggleExpand(poema.id)}
                                             className="boton boton-mini"
                                             style={{ marginTop: '10px' }}
