@@ -14,14 +14,12 @@ interface Poema {
     comentarios?: number;
 }
 
-interface Sesion {
-    userId: string;
-}
+import { JWTPayload } from 'jose';
 
 interface AuthorFilterProps {
     poemasData: Poema[];
     autores: string[];
-    sesion: Sesion | null;
+    sesion: JWTPayload | null;
     admin: boolean;
     borrarPoema: (formData: FormData) => Promise<void>;
 }
@@ -138,18 +136,24 @@ export default function AuthorFilter({
                                 <div className="poema-card-header">
                                     <h2 className="titulo-tarjeta">{poema.titulo}</h2>
                                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                        {sesion && (poema.user_id === parseInt(sesion.userId as string) || admin) && (
-                                            <>
-                                                <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
-                                                <form action={borrarPoema} style={{ display: 'inline' }}>
-                                                    <input type="hidden" name="id" value={poema.id} />
-                                                    <button type="submit" className="boton boton-mini" style={{ backgroundColor: '#dc3545' }}>Borrar</button>
-                                                </form>
-                                            </>
-                                        )}
-                                        {sesion && poema.user_id !== parseInt(sesion.userId as string) && !admin && (
-                                            <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Solo {poema.autor || 'el autor'} puede editar</span>
-                                        )}
+                                        {(() => {
+                                            const userId = sesion?.userId as string;
+                                            return sesion && userId && (poema.user_id === parseInt(userId) || admin) && (
+                                                <>
+                                                    <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
+                                                    <form action={borrarPoema} style={{ display: 'inline' }}>
+                                                        <input type="hidden" name="id" value={poema.id} />
+                                                        <button type="submit" className="boton boton-mini" style={{ backgroundColor: '#dc3545' }}>Borrar</button>
+                                                    </form>
+                                                </>
+                                            );
+                                        })()}
+                                        {(() => {
+                                            const userId = sesion?.userId as string;
+                                            return sesion && userId && poema.user_id !== parseInt(userId) && !admin && (
+                                                <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Solo {poema.autor || 'el autor'} puede editar</span>
+                                            );
+                                        })()}
                                         {!sesion && (
                                             <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Editar (requiere login)</span>
                                         )}
