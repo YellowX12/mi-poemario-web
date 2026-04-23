@@ -56,6 +56,40 @@ CREATE TABLE poemas (
   user_id INT,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Opcional: Para likes/dislikes
+CREATE TABLE poem_likes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  poema_id INT,
+  user_id INT,
+  tipo ENUM('like', 'dislike'),
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (poema_id) REFERENCES poemas(id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  UNIQUE KEY unique_like (poema_id, user_id)
+);
+
+-- Opcional: Para favoritos
+CREATE TABLE favoritos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  poema_id INT,
+  user_id INT,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (poema_id) REFERENCES poemas(id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  UNIQUE KEY unique_fav (poema_id, user_id)
+);
+
+-- Opcional: Para comentarios
+CREATE TABLE comentarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  poema_id INT,
+  user_id INT,
+  contenido TEXT NOT NULL,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (poema_id) REFERENCES poemas(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 ```
 
 ## Learn More

@@ -10,13 +10,16 @@ interface Poema {
     contenido: string;
     user_id: number;
     autor?: string;
+    likes?: number;
+    dislikes?: number;
+    comentarios?: number;
 }
 
 export default async function Home() {
     const sesion = await obtenerSesion();
     const admin = sesion ? await esAdmin() : false;
     // Siempre obtener el autor con JOIN, tanto con como sin sesión
-    const query = 'SELECT p.*, u.nombre as autor FROM poemas p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.id ASC';
+    const query = 'SELECT p.*, u.nombre as autor, 0 as likes, 0 as dislikes, 0 as comentarios FROM poemas p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.id ASC';
     const params: unknown[] = [];
 
     const [filas] = await db.query(query, params) as [Poema[], unknown];
