@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS poemas (
   contenido TEXT NOT NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   user_id INT,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Tabla de likes/dislikes en poemas

@@ -5,6 +5,30 @@ import Watermark from './Watermark';
 
 export default function SecurityProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
+        // Bloquear getDisplayMedia (compartir pantalla/grabación)
+        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+            navigator.mediaDevices.getDisplayMedia = (() => {
+                throw new Error('Screen capture is disabled.');
+            }) as any;
+        }
+
+        // Bloquear getScreenDetails (API de pantalla)
+        if ((navigator as any).getScreenDetails) {
+            (navigator as any).getScreenDetails = (() => {
+                throw new Error('Screen details are disabled.');
+            }) as any;
+        }
+
+        // Bloquear acceso a clipboard
+        if (navigator.clipboard) {
+            navigator.clipboard.readText = (() => {
+                return Promise.reject(new Error('Clipboard access denied.'));
+            }) as any;
+            navigator.clipboard.writeText = (() => {
+                return Promise.reject(new Error('Clipboard access denied.'));
+            }) as any;
+        }
+
         // Prevenir copiar/pegar/cortar
         const preventCopyPaste = (e: Event) => {
             e.preventDefault();
@@ -54,6 +78,12 @@ export default function SecurityProvider({ children }: { children: React.ReactNo
                 return false;
             }
 
+            // Prevenir Win+Shift+S (Windows 10+ screenshot)
+            if (e.shiftKey && e.key === 's' && !e.ctrlKey && !e.altKey) {
+                e.preventDefault();
+                return false;
+            }
+
             // Prevenir Ctrl+Shift+I (DevTools)
             if (e.ctrlKey && e.shiftKey && e.key === 'I') {
                 e.preventDefault();
@@ -65,6 +95,12 @@ export default function SecurityProvider({ children }: { children: React.ReactNo
             if (e.key === 'F12') {
                 e.preventDefault();
                 alert('Herramientas de desarrollo deshabilitadas.');
+                return false;
+            }
+
+            // Prevenir Ctrl+Shift+C (DevTools Inspector)
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
                 return false;
             }
         };
