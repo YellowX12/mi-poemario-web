@@ -35,6 +35,17 @@ SESSION_SECRET=tu_secreto_super_seguro
 
 Do not commit `.env.local` to Git.
 
+## Database setup
+
+1. **Install MySQL** if you don't have it
+2. **Create the database** by running the `database.sql` file:
+   ```bash
+   mysql -u root -p < database.sql
+   ```
+   Or import it through your MySQL client (phpMyAdmin, MySQL Workbench, etc.)
+
+3. **Configure environment** by copying `env.example` to `.env.local` and updating the values.
+
 ## Database schema
 
 Use this schema for the app tables:
