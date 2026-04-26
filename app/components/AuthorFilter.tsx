@@ -41,6 +41,7 @@ export default function AuthorFilter({
     isHighlighted = false
 }: AuthorFilterProps) {
     const [autorSelected, setAutorSelected] = useState<Set<string>>(new Set(autores));
+    const [searchTerm, setSearchTerm] = useState('');
     const [expandedPoems, setExpandedPoems] = useState<Set<number>>(new Set());
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
     const [userLikes, setUserLikes] = useState<Map<number, string>>(new Map());
@@ -72,11 +73,18 @@ export default function AuthorFilter({
 
     const poemasFiltered = useMemo(() => {
         if (autorSelected.size === 0) return [];
+
+        const search = searchTerm.trim().toLowerCase();
         return poemasData.filter(poema => {
             const autorDisplay = poema.autor || `Usuario ${poema.user_id}`;
-            return autorSelected.has(autorDisplay);
+            const matchesAutor = autorSelected.has(autorDisplay);
+            const matchesSearch = !search ||
+                poema.titulo.toLowerCase().includes(search) ||
+                poema.contenido.toLowerCase().includes(search);
+
+            return matchesAutor && matchesSearch;
         });
-    }, [autorSelected, poemasData]);
+    }, [autorSelected, poemasData, searchTerm]);
 
     const handleAutorChange = (autor: string, checked: boolean) => {
         const newSelected = new Set(autorSelected);
@@ -230,12 +238,31 @@ export default function AuthorFilter({
             <div className="author-filter-layout">
                 <div className="author-filter">
                     <div className="filter-header">
-                        <h3>Filtrar por Autor</h3>
+                        <div>
+                            <h3>Filtrar por Autor</h3>
+                            <p className="filter-summary">{poemasFiltered.length} poema{poemasFiltered.length === 1 ? '' : 's'} encontrados</p>
+                        </div>
                         <button 
                             className="filter-toggle-all"
                             onClick={() => toggleSelectAll(autorSelected.size !== autores.length)}
                         >
                             {autorSelected.size === autores.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                        </button>
+                    </div>
+
+                    <div className="filter-search">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Buscar por título o verso"
+                        />
+                        <button
+                            type="button"
+                            className="filter-clear"
+                            onClick={() => setSearchTerm('')}
+                        >
+                            Limpiar
                         </button>
                     </div>
 

@@ -558,6 +558,116 @@ a {
     font-weight: 500;
 }
 
+.filter-search {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+    align-items: center;
+}
+
+.filter-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #ddd7d0;
+    background: #ffffff;
+    color: #312f2a;
+}
+
+.filter-search input:focus {
+    outline: none;
+    border-color: #4d3d97;
+    box-shadow: 0 0 0 4px rgba(77, 61, 151, 0.08);
+}
+
+.filter-clear {
+    border: 1px solid #4d3d97;
+    background: transparent;
+    color: #4d3d97;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-clear:hover {
+    background: rgba(77, 61, 151, 0.08);
+}
+
+.filter-summary {
+    color: #6e6356;
+    font-size: 0.95rem;
+    margin-top: 8px;
+}
+
+.page-tabs {
+    display: grid;
+    gap: 28px;
+    padding-top: 24px;
+}
+
+.tab-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    flex: 1;
+    min-width: 140px;
+    padding: 14px 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: #fff;
+    color: #4d3d97;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(77, 61, 151, 0.1);
+}
+
+.tab-button.active {
+    background: #4d3d97;
+    color: #fff;
+    border-color: #4d3d97;
+}
+
+.tab-description {
+    color: #6e6356;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.tab-meta {
+    color: #8a7968;
+    font-size: 0.95rem;
+}
+
+.tab-empty {
+    text-align: center;
+    padding: 40px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(123, 102, 85, 0.12);
+    box-shadow: 0 14px 40px rgba(84, 68, 54, 0.08);
+}
+
+.tab-empty h3 {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+}
+
+.tab-empty p {
+    color: #8a7968;
+    margin-bottom: 24px;
+}
+
 @media (max-width: 760px) {
     .author-filter {
         padding: 20px;
