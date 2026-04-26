@@ -92,7 +92,8 @@ export default async function Home() {
                 </div>
             </header>
 
-            <section id="galeria-poemas" className="galeria-poemas">
+            <section id="poemas-destacados" className="galeria-poemas">
+                <h2 className="seccion-titulo">Poemas más gustados</h2>
                 {poemasDestacados.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '40px', color: '#8a7968' }}>
                         <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Aún no hay poemas gustados</h3>
@@ -111,6 +112,34 @@ export default async function Home() {
                         <AuthorFilter 
                             poemasData={poemasDestacados}
                             autores={Array.from(new Set(poemasDestacados.map(p => p.autor || `Usuario ${p.user_id}`))).sort()}
+                            sesion={sesion}
+                            admin={admin}
+                            borrarPoema={borrarPoema}
+                            isHighlighted={false}
+                        />
+                    </div>
+                )}
+            </section>
+
+            <section id="todos-los-poemas" className="galeria-poemas">
+                <h2 className="seccion-titulo">Todos los poemas</h2>
+                {poemas.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px', color: '#8a7968' }}>
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Aún no hay poemas publicados</h3>
+                        <p style={{ fontSize: '1.1rem', marginBottom: '20px' }}>
+                            Publica tu primer poema para que otros puedan leerlo.
+                        </p>
+                        {sesion ? (
+                            <Link href="/escribir" className="boton boton-primario">Escribir un poema</Link>
+                        ) : (
+                            <Link href="/login" className="boton boton-primario">Iniciar sesión</Link>
+                        )}
+                    </div>
+                ) : (
+                    <div className="author-filter-layout">
+                        <AuthorFilter 
+                            poemasData={poemas}
+                            autores={Array.from(new Set(poemas.map(p => p.autor || `Usuario ${p.user_id}`))).sort()}
                             sesion={sesion}
                             admin={admin}
                             borrarPoema={borrarPoema}
