@@ -227,34 +227,31 @@ export default function AuthorFilter({
 
     if (!isHighlighted) {
         return (
-            <>
-                {/* Filtro de Autores - Solo mostrar si no está destacado o si hay muchos poemas */}
-                {poemasData.length > 3 && (
-                    <div className="author-filter">
-                        <div className="filter-header">
-                            <h3>Filtrar por Autor</h3>
-                            <button 
-                                className="filter-toggle-all"
-                                onClick={() => toggleSelectAll(autorSelected.size !== autores.length)}
-                            >
-                                {autorSelected.size === autores.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                            </button>
-                        </div>
-
-                        <div className="filter-options">
-                            {autores.map((autor) => (
-                                <label key={autor} className="filter-option">
-                                    <input
-                                        type="checkbox"
-                                        checked={autorSelected.has(autor)}
-                                        onChange={(e) => handleAutorChange(autor, e.target.checked)}
-                                    />
-                                    <span>{autor}</span>
-                                </label>
-                            ))}
-                        </div>
+            <div className="author-filter-layout">
+                <div className="author-filter">
+                    <div className="filter-header">
+                        <h3>Filtrar por Autor</h3>
+                        <button 
+                            className="filter-toggle-all"
+                            onClick={() => toggleSelectAll(autorSelected.size !== autores.length)}
+                        >
+                            {autorSelected.size === autores.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                        </button>
                     </div>
-                )}
+
+                    <div className="filter-options">
+                        {autores.map((autor) => (
+                            <label key={autor} className="filter-option">
+                                <input
+                                    type="checkbox"
+                                    checked={autorSelected.has(autor)}
+                                    onChange={(e) => handleAutorChange(autor, e.target.checked)}
+                                />
+                                <span>{autor}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Galería de Poemas */}
                 <section className="galeria-poemas-grid">
@@ -383,7 +380,7 @@ export default function AuthorFilter({
                         })
                     )}
                 </section>
-            </>
+            </div>
         );
     }
 
