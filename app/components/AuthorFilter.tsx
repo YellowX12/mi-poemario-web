@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 
 interface Poema {
@@ -14,6 +14,13 @@ interface Poema {
     comentarios?: number;
 }
 
+interface Comentario {
+    id: number;
+    contenido: string;
+    fecha: string;
+    autor: string;
+}
+
 import { JWTPayload } from 'jose';
 
 interface AuthorFilterProps {
@@ -22,6 +29,7 @@ interface AuthorFilterProps {
     sesion: JWTPayload | null;
     admin: boolean;
     borrarPoema: (formData: FormData) => Promise<void>;
+    isHighlighted?: boolean;
 }
 
 export default function AuthorFilter({ 
@@ -29,11 +37,38 @@ export default function AuthorFilter({
     autores, 
     sesion, 
     admin, 
-    borrarPoema 
+    borrarPoema,
+    isHighlighted = false
 }: AuthorFilterProps) {
     const [autorSelected, setAutorSelected] = useState<Set<string>>(new Set(autores));
     const [expandedPoems, setExpandedPoems] = useState<Set<number>>(new Set());
-    const [favorites, setFavorites] = useState<Set<number>>(new Set()); // Simulado, en BD sería por usuario
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
+    const [userLikes, setUserLikes] = useState<Map<number, string>>(new Map());
+    const [comentariosMap, setComentariosMap] = useState<Map<number, Comentario[]>>(new Map());
+    const [nuevoComentario, setNuevoComentario] = useState<Map<number, string>>(new Map());
+    const [loadingLikes, setLoadingLikes] = useState<Set<number>>(new Set());
+    const [poemasActualizados, setPoemasActualizados] = useState<Map<number, Poema>>(new Map());
+
+    // Cargar comentarios al iniciar
+    useEffect(() => {
+        const cargarComentarios = async () => {
+            const newMap = new Map<number, Comentario[]>();
+            for (const poema of poemasData) {
+                try {
+                    const res = await fetch(`/api/comentarios?poemaId=${poema.id}`);
+                    if (res.ok) {
+                        const comentarios = await res.json();
+                        newMap.set(poema.id, comentarios);
+                    }
+                } catch (error) {
+                    console.error('Error cargando comentarios:', error);
+                }
+            }
+            setComentariosMap(newMap);
+        };
+
+        cargarComentarios();
+    }, [poemasData]);
 
     const poemasFiltered = useMemo(() => {
         if (autorSelected.size === 0) return [];
@@ -81,144 +116,333 @@ export default function AuthorFilter({
         setFavorites(newFavorites);
     };
 
+    const handleLike = async (poemaId: number, tipo: 'like' | 'dislike') => {
+        if (!sesion) {
+            alert('Debes iniciar sesión');
+            return;
+        }
+
+        setLoadingLikes(prev => new Set(prev).add(poemaId));
+
+        try {
+            const res = await fetch('/api/likes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ poemaId, tipo })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const currentType = userLikes.get(poemaId);
+                
+                // Actualizar el mapa de likes del usuario
+                if (data.action === 'removed') {
+                    userLikes.delete(poemaId);
+                } else {
+                    userLikes.set(poemaId, tipo);
+                }
+                setUserLikes(new Map(userLikes));
+
+                // Actualizar contador en poemasActualizados
+                const poemaActual = poemasActualizados.get(poemaId) || 
+                    poemasData.find(p => p.id === poemaId) ||
+                    { ...poemasData[0] };
+
+                if (data.action === 'removed') {
+                    if (tipo === 'like') poemaActual.likes = (poemaActual.likes || 0) - 1;
+                    if (tipo === 'dislike') poemaActual.dislikes = (poemaActual.dislikes || 0) - 1;
+                } else if (data.action === 'added') {
+                    if (tipo === 'like') poemaActual.likes = (poemaActual.likes || 0) + 1;
+                    if (tipo === 'dislike') poemaActual.dislikes = (poemaActual.dislikes || 0) + 1;
+                } else if (data.action === 'updated') {
+                    if (currentType === 'like') poemaActual.likes = (poemaActual.likes || 0) - 1;
+                    if (currentType === 'dislike') poemaActual.dislikes = (poemaActual.dislikes || 0) - 1;
+                    if (tipo === 'like') poemaActual.likes = (poemaActual.likes || 0) + 1;
+                    if (tipo === 'dislike') poemaActual.dislikes = (poemaActual.dislikes || 0) + 1;
+                }
+
+                poemasActualizados.set(poemaId, poemaActual);
+                setPoemasActualizados(new Map(poemasActualizados));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al registrar el like');
+        } finally {
+            setLoadingLikes(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(poemaId);
+                return newSet;
+            });
+        }
+    };
+
+    const handleAgregarComentario = async (poemaId: number) => {
+        const contenido = nuevoComentario.get(poemaId) || '';
+        if (!contenido.trim()) {
+            alert('Escribe un comentario');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/comentarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ poemaId, contenido })
+            });
+
+            if (res.ok) {
+                // Recargar comentarios
+                const resComents = await fetch(`/api/comentarios?poemaId=${poemaId}`);
+                if (resComents.ok) {
+                    const comentarios = await resComents.json();
+                    comentariosMap.set(poemaId, comentarios);
+                    setComentariosMap(new Map(comentariosMap));
+                }
+                
+                // Limpiar input
+                nuevoComentario.delete(poemaId);
+                setNuevoComentario(new Map(nuevoComentario));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al agregar comentario');
+        }
+    };
+
     const truncateContent = (content: string, lines: number = 5) => {
         const linesArray = content.split('\n');
         if (linesArray.length <= lines) return content;
         return linesArray.slice(0, lines).join('\n') + '\n...';
     };
 
-    return (
-        <>
-            {/* Filtro de Autores */}
-            <div className="author-filter">
-                <div className="filter-header">
-                    <h3>Filtrar por Autor</h3>
-                    <button 
-                        className="filter-toggle-all"
-                        onClick={() => toggleSelectAll(autorSelected.size !== autores.length)}
-                    >
-                        {autorSelected.size === autores.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                    </button>
-                </div>
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+    };
 
-                <div className="filter-options">
-                    {autores.map((autor) => (
-                        <label key={autor} className="filter-option">
-                            <input
-                                type="checkbox"
-                                checked={autorSelected.has(autor)}
-                                onChange={(e) => handleAutorChange(autor, e.target.checked)}
-                            />
-                            <span>{autor}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
+    // Obtener poema actualizado o original
+    const getPoema = (poemaId: number) => {
+        return poemasActualizados.get(poemaId) || poemasData.find(p => p.id === poemaId)!;
+    };
 
-            {/* Galería de Poemas Filtrados */}
-            <section id="galeria-poemas" className="galeria-poemas" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                {poemasFiltered.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#8a7968', gridColumn: '1 / -1' }}>
-                        <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>No hay poemas de estos autores</h3>
-                        <p style={{ fontSize: '1.1rem' }}>
-                            Selecciona otros autores para ver sus poemas
-                        </p>
+    if (!isHighlighted) {
+        return (
+            <>
+                {/* Filtro de Autores - Solo mostrar si no está destacado o si hay muchos poemas */}
+                {poemasData.length > 3 && (
+                    <div className="author-filter">
+                        <div className="filter-header">
+                            <h3>Filtrar por Autor</h3>
+                            <button 
+                                className="filter-toggle-all"
+                                onClick={() => toggleSelectAll(autorSelected.size !== autores.length)}
+                            >
+                                {autorSelected.size === autores.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                            </button>
+                        </div>
+
+                        <div className="filter-options">
+                            {autores.map((autor) => (
+                                <label key={autor} className="filter-option">
+                                    <input
+                                        type="checkbox"
+                                        checked={autorSelected.has(autor)}
+                                        onChange={(e) => handleAutorChange(autor, e.target.checked)}
+                                    />
+                                    <span>{autor}</span>
+                                </label>
+                            ))}
+                        </div>
                     </div>
-                ) : (
-                    poemasFiltered.map((poema) => {
-                        const isExpanded = expandedPoems.has(poema.id);
-                        const isFavorite = favorites.has(poema.id);
-                        const contentToShow = isExpanded ? poema.contenido : truncateContent(poema.contenido, 5);
-                        const needsTruncation = poema.contenido.split('\n').length > 5;
+                )}
 
-                        return (
-                            <article key={poema.id} className="poema-card" style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '20px', backgroundColor: '#fff' }}>
-                                <div className="poema-card-header">
-                                    <h2 className="titulo-tarjeta">{poema.titulo}</h2>
-                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                        {(() => {
-                                            const userId = sesion?.userId as string;
-                                            return sesion && userId && (poema.user_id === parseInt(userId) || admin) && (
-                                                <>
-                                                    <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
-                                                    <form action={borrarPoema} style={{ display: 'inline' }}>
-                                                        <input type="hidden" name="id" value={poema.id} />
-                                                        <button type="submit" className="boton boton-mini" style={{ backgroundColor: '#dc3545' }}>Borrar</button>
-                                                    </form>
-                                                </>
-                                            );
-                                        })()}
-                                        {(() => {
-                                            const userId = sesion?.userId as string;
-                                            return sesion && userId && poema.user_id !== parseInt(userId) && !admin && (
-                                                <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Solo {poema.autor || 'el autor'} puede editar</span>
-                                            );
-                                        })()}
-                                        {!sesion && (
-                                            <span className="boton boton-mini" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Editar (requiere login)</span>
+                {/* Galería de Poemas */}
+                <section className="galeria-poemas-grid">
+                    {poemasFiltered.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#8a7968', gridColumn: '1 / -1' }}>
+                            <p>No hay poemas de estos autores</p>
+                        </div>
+                    ) : (
+                        poemasFiltered.map((poemaOriginal) => {
+                            const poema = getPoema(poemaOriginal.id);
+                            const isExpanded = expandedPoems.has(poema.id);
+                            const isFavorite = favorites.has(poema.id);
+                            const contentToShow = isExpanded ? poema.contenido : truncateContent(poema.contenido, 5);
+                            const needsTruncation = poema.contenido.split('\n').length > 5;
+                            const userLikeType = userLikes.get(poema.id);
+                            const isLoadingLike = loadingLikes.has(poema.id);
+
+                            return (
+                                <article key={poema.id} className="poema-card">
+                                    <div className="poema-card-header">
+                                        <h2 className="titulo-tarjeta">{poema.titulo}</h2>
+                                    </div>
+                                    
+                                    <div className="poema-meta">
+                                        Por: <strong>{poema.autor || `Usuario ${poema.user_id}`}</strong>
+                                    </div>
+
+                                    <div className="versos">
+                                        <p className="texto-poema">{contentToShow}</p>
+                                        {needsTruncation && (
+                                            <button
+                                                onClick={() => toggleExpand(poema.id)}
+                                                className="boton-enlace"
+                                            >
+                                                {isExpanded ? 'Leer menos' : 'Leer más'}
+                                            </button>
                                         )}
                                     </div>
-                                </div>
-                                <div className="poema-meta" style={{ fontSize: '0.9rem', color: '#8a7968', marginBottom: '10px' }}>
-                                    Por: {poema.autor || `Usuario ${poema.user_id}`}
-                                </div>
-                                <div className="versos">
-                                    <p
-                                        className="texto-poema"
-                                        style={{
-                                            whiteSpace: 'pre-line',
-                                            userSelect: isExpanded ? 'text' : 'none',
-                                            WebkitUserSelect: isExpanded ? 'text' : 'none'
-                                        }}
-                                    >
-                                        {contentToShow}
-                                    </p>
-                                    {needsTruncation && (
-                                        <button
-                                            onClick={() => toggleExpand(poema.id)}
-                                            className="boton boton-mini"
-                                            style={{ marginTop: '10px' }}
+
+                                    {/* Botones de edición */}
+                                    {(() => {
+                                        const userId = sesion?.userId as string;
+                                        return sesion && userId && (poema.user_id === parseInt(userId) || admin) && (
+                                            <div className="poema-edit-buttons">
+                                                <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
+                                                <form action={borrarPoema} style={{ display: 'inline' }}>
+                                                    <input type="hidden" name="id" value={poema.id} />
+                                                    <button type="submit" className="boton boton-mini boton-peligro">Borrar</button>
+                                                </form>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Acciones */}
+                                    <div className="poema-actions">
+                                        <button 
+                                            className={`action-btn ${userLikeType === 'like' ? 'active' : ''}`}
+                                            onClick={() => handleLike(poema.id, 'like')}
+                                            disabled={isLoadingLike || !sesion}
+                                            title={!sesion ? 'Inicia sesión para dar like' : ''}
                                         >
-                                            {isExpanded ? 'Leer menos' : 'Leer más'}
+                                            👍 <span>{poema.likes || 0}</span>
                                         </button>
-                                    )}
-                                </div>
-                                <div className="poema-actions" style={{ marginTop: '15px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <button className="boton boton-mini" style={{ backgroundColor: '#28a745' }}>
-                                        👍 {poema.likes || 0}
-                                    </button>
-                                    <button className="boton boton-mini" style={{ backgroundColor: '#dc3545' }}>
-                                        👎 {poema.dislikes || 0}
-                                    </button>
-                                    <button 
-                                        onClick={() => toggleFavorite(poema.id)}
-                                        className="boton boton-mini"
-                                        style={{ backgroundColor: isFavorite ? '#ffc107' : '#6c757d' }}
-                                    >
-                                        {isFavorite ? '⭐ Favorito' : '☆ Agregar a favoritos'}
-                                    </button>
-                                    <span className="boton boton-mini" style={{ opacity: 0.7 }}>
-                                        💬 Comentarios ({poema.comentarios || 0})
-                                    </span>
-                                </div>
-                                <div className="comentarios" style={{ marginTop: '15px' }}>
-                                    <h4>Comentarios</h4>
-                                    <div style={{ maxHeight: '100px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px', borderRadius: '4px' }}>
-                                        {/* Aquí irían los comentarios reales */}
-                                        <p style={{ fontStyle: 'italic', color: '#888' }}>Comentarios próximamente...</p>
+                                        <button 
+                                            className={`action-btn ${userLikeType === 'dislike' ? 'active' : ''}`}
+                                            onClick={() => handleLike(poema.id, 'dislike')}
+                                            disabled={isLoadingLike || !sesion}
+                                            title={!sesion ? 'Inicia sesión para dar dislike' : ''}
+                                        >
+                                            👎 <span>{poema.dislikes || 0}</span>
+                                        </button>
+                                        <button 
+                                            className={`action-btn ${isFavorite ? 'active' : ''}`}
+                                            onClick={() => toggleFavorite(poema.id)}
+                                        >
+                                            {isFavorite ? '⭐' : '☆'} <span>Favorito</span>
+                                        </button>
                                     </div>
-                                    {sesion && (
-                                        <form style={{ marginTop: '10px' }}>
-                                            <textarea placeholder="Escribe un comentario..." rows={2} style={{ width: '100%', border: '1px solid #ddd', borderRadius: '4px', padding: '5px' }}></textarea>
-                                            <button type="submit" className="boton boton-mini" style={{ marginTop: '5px' }}>Comentar</button>
-                                        </form>
-                                    )}
-                                </div>
-                            </article>
-                        );
-                    })
-                )}
-            </section>
-        </>
+
+                                    {/* Comentarios */}
+                                    <div className="comentarios-section">
+                                        <h4>Comentarios ({comentariosMap.get(poema.id)?.length || 0})</h4>
+                                        <div className="comentarios-lista">
+                                            {(comentariosMap.get(poema.id) || []).map(com => (
+                                                <div key={com.id} className="comentario-item">
+                                                    <div className="comentario-header">
+                                                        <strong>{com.autor}</strong>
+                                                        <span className="comentario-fecha">{formatDate(com.fecha)}</span>
+                                                    </div>
+                                                    <p className="comentario-texto">{com.contenido}</p>
+                                                </div>
+                                            ))}
+                                            {(comentariosMap.get(poema.id) === undefined || (comentariosMap.get(poema.id)?.length || 0) === 0) && (
+                                                <p style={{ fontStyle: 'italic', color: '#999', fontSize: '0.9rem' }}>Sin comentarios aún</p>
+                                            )}
+                                        </div>
+
+                                        {sesion && (
+                                            <div className="comentario-input-form">
+                                                <textarea 
+                                                    placeholder="Escribe un comentario..."
+                                                    rows={2}
+                                                    value={nuevoComentario.get(poema.id) || ''}
+                                                    onChange={(e) => {
+                                                        nuevoComentario.set(poema.id, e.target.value);
+                                                        setNuevoComentario(new Map(nuevoComentario));
+                                                    }}
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    className="boton boton-mini"
+                                                    onClick={() => handleAgregarComentario(poema.id)}
+                                                >
+                                                    Comentar
+                                                </button>
+                                            </div>
+                                        )}
+                                        {!sesion && (
+                                            <p style={{ fontSize: '0.9rem', color: '#8a7968', marginTop: '10px' }}>
+                                                <Link href="/login" className="boton-enlace">Inicia sesión</Link> para comentar
+                                            </p>
+                                        )}
+                                    </div>
+                                </article>
+                            );
+                        })
+                    )}
+                </section>
+            </>
+        );
+    }
+
+    // Versión simplificada para poemas destacados
+    return (
+        <section className="galeria-poemas-grid galeria-destacada">
+            {poemasData.map((poemaOriginal) => {
+                const poema = getPoema(poemaOriginal.id);
+                const isExpanded = expandedPoems.has(poema.id);
+                const isFavorite = favorites.has(poema.id);
+                const contentToShow = isExpanded ? poema.contenido : truncateContent(poema.contenido, 4);
+                const needsTruncation = poema.contenido.split('\n').length > 4;
+                const userLikeType = userLikes.get(poema.id);
+
+                return (
+                    <article key={poema.id} className="poema-card poema-card-destacado">
+                        <div className="poema-highlight-badge">⭐ {poema.likes} me gusta</div>
+                        
+                        <h2 className="titulo-tarjeta">{poema.titulo}</h2>
+                        
+                        <div className="poema-meta">
+                            Por: <strong>{poema.autor || `Usuario ${poema.user_id}`}</strong>
+                        </div>
+
+                        <div className="versos">
+                            <p className="texto-poema">{contentToShow}</p>
+                            {needsTruncation && (
+                                <button
+                                    onClick={() => toggleExpand(poema.id)}
+                                    className="boton-enlace"
+                                >
+                                    {isExpanded ? 'Leer menos' : 'Leer más'}
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="poema-actions-compact">
+                            <button 
+                                className={`action-btn-small ${userLikeType === 'like' ? 'active' : ''}`}
+                                onClick={() => handleLike(poema.id, 'like')}
+                                disabled={!sesion}
+                            >
+                                👍 {poema.likes || 0}
+                            </button>
+                            <button 
+                                className={`action-btn-small ${isFavorite ? 'active' : ''}`}
+                                onClick={() => toggleFavorite(poema.id)}
+                            >
+                                {isFavorite ? '⭐' : '☆'}
+                            </button>
+                            <button 
+                                className="action-btn-small"
+                            >
+                                💬 {comentariosMap.get(poema.id)?.length || 0}
+                            </button>
+                        </div>
+                    </article>
+                );
+            })}
+        </section>
     );
 }

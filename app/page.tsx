@@ -18,17 +18,26 @@ interface Poema {
 export default async function Home() {
     const sesion = await obtenerSesion();
     const admin = sesion ? await esAdmin() : false;
-    // Siempre obtener el autor con JOIN, tanto con como sin sesión
-    const query = 'SELECT p.*, u.nombre as autor, 0 as likes, 0 as dislikes, 0 as comentarios FROM poemas p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.id ASC';
+    
+    // Consulta mejorada que cuenta likes, dislikes y comentarios
+    const query = `
+        SELECT 
+            p.*, 
+            u.nombre as autor,
+            (SELECT COUNT(*) FROM poem_likes WHERE poema_id = p.id AND tipo = 'like') as likes,
+            (SELECT COUNT(*) FROM poem_likes WHERE poema_id = p.id AND tipo = 'dislike') as dislikes,
+            (SELECT COUNT(*) FROM comentarios WHERE poema_id = p.id) as comentarios
+        FROM poemas p 
+        LEFT JOIN users u ON p.user_id = u.id 
+        ORDER BY likes DESC, p.fecha_creacion DESC
+    `;
     const params: unknown[] = [];
 
     const [filas] = await db.query(query, params) as [Poema[], unknown];
     const poemas = filas;
-
-    // Obtener lista de autores únicos
-    const autoresUnicos = Array.from(
-        new Set(poemas.map(p => p.autor || `Usuario ${p.user_id}`))
-    ).sort();
+    
+    // Separar poemas destacados (con más de 0 likes)
+    const poemasDestacados = poemas.filter(p => (p.likes || 0) > 0);
 
     async function cerrarSesion() {
         "use server";
@@ -98,13 +107,32 @@ export default async function Home() {
                         )}
                     </div>
                 ) : (
-                    <AuthorFilter 
-                        poemasData={poemas}
-                        autores={autoresUnicos}
-                        sesion={sesion}
-                        admin={admin}
-                        borrarPoema={borrarPoema}
-                    />
+                    <>
+                        {poemasDestacados.length > 0 && (
+                            <div className="seccion-destacados">
+                                <h2 style={{ fontSize: '1.8rem', marginBottom: '24px', fontFamily: "'Playfair Display', serif" }}>
+                                    ✨ Poemas Más Gustados
+                                </h2>
+                                <AuthorFilter 
+                                    poemasData={poemasDestacados}
+                                    autores={Array.from(new Set(poemasDestacados.map(p => p.autor || `Usuario ${p.user_id}`))).sort()}
+                                    sesion={sesion}
+                                    admin={admin}
+                                    borrarPoema={borrarPoema}
+                                    isHighlighted={true}
+                                />
+                            </div>
+                        )}
+                        
+                        <AuthorFilter 
+                            poemasData={poemas}
+                            autores={Array.from(new Set(poemas.map(p => p.autor || `Usuario ${p.user_id}`))).sort()}
+                            sesion={sesion}
+                            admin={admin}
+                            borrarPoema={borrarPoema}
+                            isHighlighted={false}
+                        />
+                    </>
                 )}
             </section>
         </main>

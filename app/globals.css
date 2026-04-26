@@ -582,3 +582,359 @@ a {
         padding: 14px;
     }
 }
+
+/* Galería de Poemas Grid */
+.galeria-poemas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.galeria-destacada {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    margin-bottom: 48px;
+    padding-top: 24px;
+    border-top: 2px solid rgba(118, 101, 85, 0.12);
+}
+
+.seccion-destacados {
+    margin-bottom: 48px;
+}
+
+/* Poema Card - Minimalista */
+.poema-card {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid rgba(123, 102, 85, 0.12);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.poema-card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.poema-card-destacado {
+    position: relative;
+    border: 2px solid rgba(77, 61, 151, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(245, 237, 226, 0.95));
+}
+
+.poema-highlight-badge {
+    display: inline-block;
+    background: rgba(77, 61, 151, 0.1);
+    color: #4d3d97;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    width: fit-content;
+}
+
+.poema-card-header {
+    margin-bottom: 12px;
+}
+
+.titulo-tarjeta {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+    color: #312f2a;
+}
+
+.poema-meta {
+    font-size: 0.9rem;
+    color: #8a7968;
+    margin-bottom: 16px;
+}
+
+.poema-meta strong {
+    color: #4d3d97;
+    font-weight: 600;
+}
+
+.versos {
+    flex-grow: 1;
+    margin-bottom: 16px;
+}
+
+.texto-poema {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: #4d433d;
+    line-height: 1.7;
+    white-space: pre-line;
+    margin: 0;
+}
+
+.boton-enlace {
+    background: none;
+    border: none;
+    color: #4d3d97;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    transition: color 0.2s ease;
+}
+
+.boton-enlace:hover {
+    color: #6b5ba8;
+}
+
+.poema-edit-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.boton-mini {
+    background-color: #4d3d97;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.boton-mini:hover:not(:disabled) {
+    background-color: #6b5ba8;
+    transform: translateY(-1px);
+}
+
+.boton-mini:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.boton-peligro {
+    background-color: #dc3545;
+}
+
+.boton-peligro:hover {
+    background-color: #e63946;
+}
+
+/* Acciones de Poema */
+.poema-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 70px;
+    background: #f7f2ea;
+    border: 2px solid #ddd7d0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: #312f2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.action-btn:hover:not(:disabled) {
+    border-color: #4d3d97;
+    background: rgba(77, 61, 151, 0.05);
+}
+
+.action-btn.active {
+    background: rgba(77, 61, 151, 0.15);
+    border-color: #4d3d97;
+    color: #4d3d97;
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn span {
+    font-weight: 700;
+}
+
+.poema-actions-compact {
+    display: flex;
+    gap: 8px;
+    justify-content: space-around;
+}
+
+.action-btn-small {
+    background: #f7f2ea;
+    border: 1px solid #ddd7d0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: #312f2a;
+    font-size: 0.85rem;
+    flex: 1;
+}
+
+.action-btn-small:hover {
+    border-color: #4d3d97;
+    background: rgba(77, 61, 151, 0.05);
+}
+
+.action-btn-small.active {
+    background: rgba(77, 61, 151, 0.15);
+    border-color: #4d3d97;
+    color: #4d3d97;
+}
+
+.action-btn-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Sección de Comentarios */
+.comentarios-section {
+    padding-top: 16px;
+    border-top: 1px solid rgba(118, 101, 85, 0.1);
+    margin-top: 16px;
+}
+
+.comentarios-section h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: #312f2a;
+    margin: 0 0 12px 0;
+}
+
+.comentarios-lista {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f9f6f0;
+    border-radius: 12px;
+}
+
+.comentario-item {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(118, 101, 85, 0.1);
+}
+
+.comentario-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.comentario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+
+.comentario-header strong {
+    color: #4d3d97;
+    font-weight: 600;
+}
+
+.comentario-fecha {
+    font-size: 0.75rem;
+    color: #999;
+    white-space: nowrap;
+}
+
+.comentario-texto {
+    font-size: 0.9rem;
+    color: #312f2a;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.comentario-input-form {
+    display: grid;
+    gap: 8px;
+}
+
+.comentario-input-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd7d0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 60px;
+    background: #f9f6f0;
+}
+
+.comentario-input-form textarea:focus {
+    outline: none;
+    border-color: #4d3d97;
+    box-shadow: 0 0 0 3px rgba(77, 61, 151, 0.1);
+}
+
+@media (max-width: 760px) {
+    .galeria-poemas-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .galeria-destacada {
+        grid-template-columns: 1fr;
+    }
+
+    .poema-card {
+        padding: 16px;
+    }
+
+    .titulo-tarjeta {
+        font-size: 1.2rem;
+    }
+
+    .texto-poema {
+        font-size: 0.95rem;
+    }
+
+    .poema-actions {
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        flex: 1;
+    }
+
+    .comentarios-lista {
+        max-height: 150px;
+        padding: 8px;
+    }
+
+    .comentario-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
