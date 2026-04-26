@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import AuthorFilter from './components/AuthorFilter';
+import { JWTPayload } from 'jose';
+import AuthorFilter from './AuthorFilter';
 
 interface Poema {
     id: number;
@@ -17,7 +18,7 @@ interface Poema {
 interface PoemTabsProps {
     poemas: Poema[];
     poemasDestacados: Poema[];
-    sesion: unknown;
+    sesion: JWTPayload | null;
     admin: boolean;
     borrarPoema: (formData: FormData) => Promise<void>;
 }
