@@ -882,8 +882,8 @@ a {
 
 .autor-poemas-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
     align-items: start;
     width: 100%;
 }
@@ -910,7 +910,7 @@ a {
 .poema-card {
     display: flex;
     flex-direction: column;
-    padding: 24px;
+    padding: 18px;
     border-radius: 16px;
     background: #fff;
     border: 1px solid rgba(123, 102, 85, 0.12);
@@ -1198,6 +1198,12 @@ a {
     outline: none;
     border-color: #4d3d97;
     box-shadow: 0 0 0 3px rgba(77, 61, 151, 0.1);
+}
+
+@media (max-width: 1200px) {
+    .autor-poemas-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 1024px) {
