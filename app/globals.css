@@ -814,8 +814,10 @@ a {
 
 .autor-poemas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 22px;
+    align-items: start;
+    width: 100%;
 }
 
 .author-filter-layout {
