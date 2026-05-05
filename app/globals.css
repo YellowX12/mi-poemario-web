@@ -882,7 +882,7 @@ a {
 
 .autor-poemas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 22px;
     align-items: start;
     width: 100%;
@@ -1200,10 +1200,20 @@ a {
     box-shadow: 0 0 0 3px rgba(77, 61, 151, 0.1);
 }
 
+@media (max-width: 1024px) {
+    .autor-poemas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 760px) {
     .galeria-poemas-grid {
         grid-template-columns: 1fr;
         gap: 16px;
+    }
+
+    .autor-poemas-grid {
+        grid-template-columns: 1fr;
     }
 
     .galeria-destacada {
