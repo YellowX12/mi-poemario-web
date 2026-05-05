@@ -214,33 +214,114 @@ a {
 .formulario-auth input,
 .formulario-auth textarea {
     width: 100%;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid #ddd7d0;
-    background: #fbf7f3;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid #c6b8ad;
+    background: #ffffff;
     color: #2d2722;
     font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.formulario-auth input:focus,
+.formulario-auth textarea:focus,
+.formulario-auth button:focus {
+    outline: 3px solid rgba(77, 61, 151, 0.22);
+    outline-offset: 3px;
 }
 
 .formulario-auth textarea {
-    min-height: 240px;
+    min-height: 260px;
     resize: vertical;
+    line-height: 1.75;
+}
+
+.formulario-auth .form-label {
+    display: grid;
+    gap: 10px;
+    font-weight: 600;
+    color: #4b4238;
+}
+
+.nota-accesible {
+    display: block;
+    color: #6e6356;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-top: -8px;
+    margin-bottom: 8px;
 }
 
 .formulario-auth button {
-    padding: 14px 18px;
+    padding: 16px 24px;
     border-radius: 999px;
     background: #4d3d97;
     color: #fff;
     border: none;
     cursor: pointer;
     font-weight: 700;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    min-height: 52px;
 }
 
 .formulario-auth button:hover {
     transform: translateY(-1px);
     box-shadow: 0 16px 32px rgba(77, 61, 151, 0.18);
+}
+
+.formulario-auth button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.mensaje-pegar {
+    background: rgba(77, 61, 151, 0.08);
+    border: 1px solid rgba(77, 61, 151, 0.2);
+    color: #3f3578;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.96rem;
+    line-height: 1.5;
+    margin-top: -6px;
+    margin-bottom: 10px;
+}
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
+}
+
+.loading-card {
+    padding: 28px 32px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid rgba(77, 61, 151, 0.12);
+    box-shadow: 0 24px 70px rgba(77, 61, 151, 0.12);
+    text-align: center;
+    max-width: 320px;
+}
+
+.loading-spinner {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 18px;
+    border: 4px solid rgba(77, 61, 151, 0.18);
+    border-top-color: #4d3d97;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .form-footer {

@@ -1,6 +1,7 @@
 ﻿import { db } from '../../lib/db';
 import { redirect } from 'next/navigation';
 import { obtenerSesion } from '../../lib/auth';
+import EscribirForm from '../components/EscribirForm';
 
 type EscribirProps = {
     searchParams?: { error?: string };
@@ -48,26 +49,7 @@ export default async function EscribirPoema({ searchParams }: EscribirProps) {
                     </div>
                 </header>
 
-                <form action={guardarPoema} className="formulario-auth">
-                    <input
-                        type="text"
-                        name="titulo"
-                        placeholder="Título del poema"
-                        required
-                    />
-                    <textarea
-                        name="contenido"
-                        placeholder="Escribe aquí... (Puedes usar enter libremente)"
-                        required
-                        rows={15}
-                    />
-                    {error && (
-                        <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
-                            El título y el contenido son obligatorios para publicar.
-                        </p>
-                    )}
-                    <button type="submit">Publicar Poema</button>
-                </form>
+                <EscribirForm error={error} guardarPoema={guardarPoema} />
             </div>
         </main>
     );

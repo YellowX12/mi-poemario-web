@@ -8,36 +8,27 @@ import Watermark from './Watermark';
 export default function SecurityProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Bloquear getDisplayMedia (compartir pantalla/grabación)
-        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-            navigator.mediaDevices.getDisplayMedia = (() => {
+        const browserNavigator = navigator as unknown as {
+            mediaDevices?: {
+                getDisplayMedia?: () => Promise<MediaStream>;
+            };
+            getScreenDetails?: () => Promise<unknown>;
+        };
+
+        if (browserNavigator.mediaDevices?.getDisplayMedia) {
+            browserNavigator.mediaDevices.getDisplayMedia = () => {
                 return Promise.reject(new Error('Screen capture is disabled.'));
-            }) as any;
+            };
         }
 
         // Bloquear getScreenDetails (API de pantalla)
-        if ((navigator as any).getScreenDetails) {
-            (navigator as any).getScreenDetails = (() => {
+        if (browserNavigator.getScreenDetails) {
+            browserNavigator.getScreenDetails = () => {
                 return Promise.reject(new Error('Screen details are disabled.'));
-            }) as any;
+            };
         }
 
-        // Bloquear acceso a clipboard
-        if (navigator.clipboard) {
-            navigator.clipboard.readText = (() => Promise.reject(new Error('Clipboard access denied.'))) as any;
-            navigator.clipboard.writeText = (() => Promise.reject(new Error('Clipboard access denied.'))) as any;
-        }
-
-        // Prevenir copiar/pegar/cortar
-        const preventCopyPaste = (e: Event) => {
-            e.preventDefault();
-            return false;
-        };
-
-        // Prevenir menú contextual (clic derecho)
-        const preventContextMenu = (e: Event) => {
-            e.preventDefault();
-            return false;
-        };
+        // Las operaciones básicas de copiar y pegar en formularios se controlan en el formulario.
 
         // Detectar intentos de captura de pantalla (cambio de pestaña)
         const handleVisibilityChange = () => {
@@ -91,57 +82,18 @@ export default function SecurityProvider({ children }: { children: ReactNode }) 
             document.body.innerHTML = '<h1 style="text-align:center; margin-top:20%">Contenido protegido - No se permite embeber</h1>';
         }
 
-        // Prevenir arrastrar elementos (imágenes/texto)
-        const preventDrag = (e: Event) => {
-            e.preventDefault();
-            return false;
-        };
-
-        // Prevenir screenshots con CSS tricks (inyectado dinámicamente)
-        const style = document.createElement('style');
-        style.textContent = `
-            * {
-                -webkit-backface-visibility: hidden !important;
-                backface-visibility: hidden !important;
-            }
-            body {
-                background-attachment: fixed !important;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Prevenir selección de texto vía JS
-        document.body.style.userSelect = 'none';
-        (document.body.style as any).webkitUserSelect = 'none';
-        (document.body.style as any).msUserSelect = 'none';
-
         // Agregar event listeners
-        document.addEventListener('copy', preventCopyPaste);
-        document.addEventListener('paste', preventCopyPaste);
-        document.addEventListener('cut', preventCopyPaste);
-        document.addEventListener('contextmenu', preventContextMenu);
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('blur', handleBlur); 
+        window.addEventListener('blur', handleBlur);
         window.addEventListener('beforeprint', handlePrint);
         document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('dragstart', preventDrag);
 
         // Cleanup: Muy importante remover todo al desmontar el componente
         return () => {
-            document.removeEventListener('copy', preventCopyPaste);
-            document.removeEventListener('paste', preventCopyPaste);
-            document.removeEventListener('cut', preventCopyPaste);
-            document.removeEventListener('contextmenu', preventContextMenu);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('beforeprint', handlePrint);
             document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('dragstart', preventDrag);
-            
-            // Remover el estilo inyectado para evitar fugas de memoria
-            if (document.head.contains(style)) {
-                document.head.removeChild(style);
-            }
         };
     }, []);
 
@@ -149,14 +101,6 @@ export default function SecurityProvider({ children }: { children: ReactNode }) 
         <>
             <style dangerouslySetInnerHTML={{
                 __html: `
-                * {
-                    -webkit-user-select: none !important;
-                    -moz-user-select: none !important;
-                    -ms-user-select: none !important;
-                    user-select: none !important;
-                    -webkit-touch-callout: none !important;
-                }
-
                 input, textarea {
                     -webkit-user-select: text !important;
                     -moz-user-select: text !important;
