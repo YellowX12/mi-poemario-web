@@ -86,6 +86,17 @@ export default function AuthorFilter({
         });
     }, [autorSelected, poemasData, searchTerm]);
 
+    const poemasPorAutor = useMemo(() => {
+        return poemasFiltered.reduce<Record<string, Poema[]>>((grouped, poema) => {
+            const autor = poema.autor || `Usuario ${poema.user_id}`;
+            if (!grouped[autor]) {
+                grouped[autor] = [];
+            }
+            grouped[autor].push(poema);
+            return grouped;
+        }, {});
+    }, [poemasFiltered]);
+
     const handleAutorChange = (autor: string, checked: boolean) => {
         const newSelected = new Set(autorSelected);
         if (checked) {
@@ -287,124 +298,134 @@ export default function AuthorFilter({
                             <p>No hay poemas de estos autores</p>
                         </div>
                     ) : (
-                        poemasFiltered.map((poemaOriginal) => {
-                            const poema = getPoema(poemaOriginal.id);
-                            const isExpanded = expandedPoems.has(poema.id);
-                            const isFavorite = favorites.has(poema.id);
-                            const contentToShow = isExpanded ? poema.contenido : truncateContent(poema.contenido, 5);
-                            const needsTruncation = poema.contenido.split('\n').length > 5;
-                            const userLikeType = userLikes.get(poema.id);
-                            const isLoadingLike = loadingLikes.has(poema.id);
-
-                            return (
-                                <article key={poema.id} className="poema-card">
-                                    <div className="poema-card-header">
-                                        <h2 className="titulo-tarjeta">{poema.titulo}</h2>
+                        Object.entries(poemasPorAutor).map(([autor, poemas]) => (
+                            <div key={autor} className="autor-group">
+                                <div className="autor-group-header">
+                                    <div>
+                                        <h3>{autor}</h3>
+                                        <p className="autor-group-count">{poemas.length} poema{poemas.length === 1 ? '' : 's'}</p>
                                     </div>
-                                    
-                                    <div className="poema-meta">
-                                        Por: <strong>{poema.autor || `Usuario ${poema.user_id}`}</strong>
-                                    </div>
+                                </div>
 
-                                    <div className="versos">
-                                        <p className="texto-poema">{contentToShow}</p>
-                                        {needsTruncation && (
-                                            <button
-                                                onClick={() => toggleExpand(poema.id)}
-                                                className="boton-enlace"
-                                            >
-                                                {isExpanded ? 'Leer menos' : 'Leer más'}
-                                            </button>
-                                        )}
-                                    </div>
+                                <div className="autor-poemas-grid">
+                                    {poemas.map((poemaOriginal) => {
+                                        const poema = getPoema(poemaOriginal.id);
+                                        const isExpanded = expandedPoems.has(poema.id);
+                                        const isFavorite = favorites.has(poema.id);
+                                        const contentToShow = isExpanded ? poema.contenido : truncateContent(poema.contenido, 5);
+                                        const needsTruncation = poema.contenido.split('\n').length > 5;
+                                        const userLikeType = userLikes.get(poema.id);
+                                        const isLoadingLike = loadingLikes.has(poema.id);
 
-                                    {/* Botones de edición */}
-                                    {(() => {
-                                        const userId = sesion?.userId as string;
-                                        return sesion && userId && (poema.user_id === parseInt(userId) || admin) && (
-                                            <div className="poema-edit-buttons">
-                                                <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
-                                                <form action={borrarPoema} style={{ display: 'inline' }}>
-                                                    <input type="hidden" name="id" value={poema.id} />
-                                                    <button type="submit" className="boton boton-mini boton-peligro">Borrar</button>
-                                                </form>
-                                            </div>
-                                        );
-                                    })()}
-
-                                    {/* Acciones */}
-                                    <div className="poema-actions">
-                                        <button 
-                                            className={`action-btn ${userLikeType === 'like' ? 'active' : ''}`}
-                                            onClick={() => handleLike(poema.id, 'like')}
-                                            disabled={isLoadingLike || !sesion}
-                                            title={!sesion ? 'Inicia sesión para dar like' : ''}
-                                        >
-                                            👍 <span>{poema.likes || 0}</span>
-                                        </button>
-                                        <button 
-                                            className={`action-btn ${userLikeType === 'dislike' ? 'active' : ''}`}
-                                            onClick={() => handleLike(poema.id, 'dislike')}
-                                            disabled={isLoadingLike || !sesion}
-                                            title={!sesion ? 'Inicia sesión para dar dislike' : ''}
-                                        >
-                                            👎 <span>{poema.dislikes || 0}</span>
-                                        </button>
-                                        <button 
-                                            className={`action-btn ${isFavorite ? 'active' : ''}`}
-                                            onClick={() => toggleFavorite(poema.id)}
-                                        >
-                                            {isFavorite ? '⭐' : '☆'} <span>Favorito</span>
-                                        </button>
-                                    </div>
-
-                                    {/* Comentarios */}
-                                    <div className="comentarios-section">
-                                        <h4>Comentarios ({comentariosMap.get(poema.id)?.length || 0})</h4>
-                                        <div className="comentarios-lista">
-                                            {(comentariosMap.get(poema.id) || []).map(com => (
-                                                <div key={com.id} className="comentario-item">
-                                                    <div className="comentario-header">
-                                                        <strong>{com.autor}</strong>
-                                                        <span className="comentario-fecha">{formatDate(com.fecha)}</span>
-                                                    </div>
-                                                    <p className="comentario-texto">{com.contenido}</p>
+                                        return (
+                                            <article key={poema.id} className="poema-card">
+                                                <div className="poema-card-header">
+                                                    <h2 className="titulo-tarjeta">{poema.titulo}</h2>
                                                 </div>
-                                            ))}
-                                            {(comentariosMap.get(poema.id) === undefined || (comentariosMap.get(poema.id)?.length || 0) === 0) && (
-                                                <p style={{ fontStyle: 'italic', color: '#999', fontSize: '0.9rem' }}>Sin comentarios aún</p>
-                                            )}
-                                        </div>
 
-                                        {sesion && (
-                                            <div className="comentario-input-form">
-                                                <textarea 
-                                                    placeholder="Escribe un comentario..."
-                                                    rows={2}
-                                                    value={nuevoComentario.get(poema.id) || ''}
-                                                    onChange={(e) => {
-                                                        nuevoComentario.set(poema.id, e.target.value);
-                                                        setNuevoComentario(new Map(nuevoComentario));
-                                                    }}
-                                                />
-                                                <button 
-                                                    type="button"
-                                                    className="boton boton-mini"
-                                                    onClick={() => handleAgregarComentario(poema.id)}
-                                                >
-                                                    Comentar
-                                                </button>
-                                            </div>
-                                        )}
-                                        {!sesion && (
-                                            <p style={{ fontSize: '0.9rem', color: '#8a7968', marginTop: '10px' }}>
-                                                <Link href="/login" className="boton-enlace">Inicia sesión</Link> para comentar
-                                            </p>
-                                        )}
-                                    </div>
-                                </article>
-                            );
-                        })
+                                                <div className="poema-meta">
+                                                    Por: <strong>{poema.autor || `Usuario ${poema.user_id}`}</strong>
+                                                </div>
+
+                                                <div className="versos">
+                                                    <p className="texto-poema">{contentToShow}</p>
+                                                    {needsTruncation && (
+                                                        <button
+                                                            onClick={() => toggleExpand(poema.id)}
+                                                            className="boton-enlace"
+                                                        >
+                                                            {isExpanded ? 'Leer menos' : 'Leer más'}
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {(() => {
+                                                    const userId = sesion?.userId as string;
+                                                    return sesion && userId && (poema.user_id === parseInt(userId) || admin) && (
+                                                        <div className="poema-edit-buttons">
+                                                            <Link href={`/editar/${poema.id}`} className="boton boton-mini">Editar</Link>
+                                                            <form action={borrarPoema} style={{ display: 'inline' }}>
+                                                                <input type="hidden" name="id" value={poema.id} />
+                                                                <button type="submit" className="boton boton-mini boton-peligro">Borrar</button>
+                                                            </form>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                <div className="poema-actions">
+                                                    <button 
+                                                        className={`action-btn ${userLikeType === 'like' ? 'active' : ''}`}
+                                                        onClick={() => handleLike(poema.id, 'like')}
+                                                        disabled={isLoadingLike || !sesion}
+                                                        title={!sesion ? 'Inicia sesión para dar like' : ''}
+                                                    >
+                                                        👍 <span>{poema.likes || 0}</span>
+                                                    </button>
+                                                    <button 
+                                                        className={`action-btn ${userLikeType === 'dislike' ? 'active' : ''}`}
+                                                        onClick={() => handleLike(poema.id, 'dislike')}
+                                                        disabled={isLoadingLike || !sesion}
+                                                        title={!sesion ? 'Inicia sesión para dar dislike' : ''}
+                                                    >
+                                                        👎 <span>{poema.dislikes || 0}</span>
+                                                    </button>
+                                                    <button 
+                                                        className={`action-btn ${isFavorite ? 'active' : ''}`}
+                                                        onClick={() => toggleFavorite(poema.id)}
+                                                    >
+                                                        {isFavorite ? '⭐' : '☆'} <span>Favorito</span>
+                                                    </button>
+                                                </div>
+
+                                                <div className="comentarios-section">
+                                                    <h4>Comentarios ({comentariosMap.get(poema.id)?.length || 0})</h4>
+                                                    <div className="comentarios-lista">
+                                                        {(comentariosMap.get(poema.id) || []).map(com => (
+                                                            <div key={com.id} className="comentario-item">
+                                                                <div className="comentario-header">
+                                                                    <strong>{com.autor}</strong>
+                                                                    <span className="comentario-fecha">{formatDate(com.fecha)}</span>
+                                                                </div>
+                                                                <p className="comentario-texto">{com.contenido}</p>
+                                                            </div>
+                                                        ))}
+                                                        {(comentariosMap.get(poema.id) === undefined || (comentariosMap.get(poema.id)?.length || 0) === 0) && (
+                                                            <p style={{ fontStyle: 'italic', color: '#999', fontSize: '0.9rem' }}>Sin comentarios aún</p>
+                                                        )}
+                                                    </div>
+
+                                                    {sesion && (
+                                                        <div className="comentario-input-form">
+                                                            <textarea 
+                                                                placeholder="Escribe un comentario..."
+                                                                rows={2}
+                                                                value={nuevoComentario.get(poema.id) || ''}
+                                                                onChange={(e) => {
+                                                                    nuevoComentario.set(poema.id, e.target.value);
+                                                                    setNuevoComentario(new Map(nuevoComentario));
+                                                                }}
+                                                            />
+                                                            <button 
+                                                                type="button"
+                                                                className="boton boton-mini"
+                                                                onClick={() => handleAgregarComentario(poema.id)}
+                                                            >
+                                                                Comentar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {!sesion && (
+                                                        <p style={{ fontSize: '0.9rem', color: '#8a7968', marginTop: '10px' }}>
+                                                            <Link href="/login" className="boton-enlace">Inicia sesión</Link> para comentar
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))
                     )}
                 </section>
             </div>

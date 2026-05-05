@@ -9,16 +9,9 @@ type EscribirFormProps = {
 
 export default function EscribirForm({ error, guardarPoema }: EscribirFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pasteMessage, setPasteMessage] = useState('');
 
   const handleSubmit = () => {
     setIsSubmitting(true);
-  };
-
-  const handlePreventPaste = (event: ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    event.preventDefault();
-    setPasteMessage('Pegar texto está deshabilitado para que escribas tu poema directamente.');
-    window.setTimeout(() => setPasteMessage(''), 4000);
   };
 
   return (
@@ -40,12 +33,11 @@ export default function EscribirForm({ error, guardarPoema }: EscribirFormProps)
             name="titulo"
             placeholder="Título del poema"
             required
-            onPaste={handlePreventPaste}
             aria-describedby="titulo-help"
           />
         </label>
         <span id="titulo-help" className="nota-accesible">
-          Escribe el título directamente. Pegar contenido está deshabilitado.
+          Puedes escribir o pegar el título directamente.
         </span>
 
         <label className="form-label" htmlFor="contenido">
@@ -56,19 +48,12 @@ export default function EscribirForm({ error, guardarPoema }: EscribirFormProps)
             placeholder="Escribe aquí... (Puedes usar enter libremente)"
             required
             rows={15}
-            onPaste={handlePreventPaste}
             aria-describedby="contenido-help"
           />
         </label>
         <span id="contenido-help" className="nota-accesible">
-          Para fomentar la creación original, el pegado está deshabilitado en este campo.
+          Puedes escribir o pegar el contenido directamente en el área de texto.
         </span>
-
-        {pasteMessage && (
-          <div className="mensaje-pegar" role="status" aria-live="polite">
-            {pasteMessage}
-          </div>
-        )}
 
         {error && (
           <p style={{ color: '#b02a37', marginTop: '16px', textAlign: 'center' }}>
