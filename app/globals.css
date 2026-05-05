@@ -677,6 +677,74 @@ a {
     background: rgba(77, 61, 151, 0.08);
 }
 
+.filter-more-authors {
+    margin-top: 18px;
+    width: 100%;
+    border: 1px solid #4d3d97;
+    background: transparent;
+    color: #4d3d97;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-more-authors:hover {
+    background: rgba(77, 61, 151, 0.08);
+    transform: translateY(-1px);
+}
+
+.authors-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.authors-modal-content {
+    width: min(720px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
+    padding: 28px;
+}
+
+.authors-modal-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.authors-modal-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #4d3d97;
+}
+
+.close-modal {
+    background: #4d3d97;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.modal-author-list {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
 .filter-summary {
     color: #6e6356;
     font-size: 0.95rem;

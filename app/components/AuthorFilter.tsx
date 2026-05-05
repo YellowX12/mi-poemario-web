@@ -49,6 +49,13 @@ export default function AuthorFilter({
     const [nuevoComentario, setNuevoComentario] = useState<Map<number, string>>(new Map());
     const [loadingLikes, setLoadingLikes] = useState<Set<number>>(new Set());
     const [poemasActualizados, setPoemasActualizados] = useState<Map<number, Poema>>(new Map());
+    const [showAuthorModal, setShowAuthorModal] = useState(false);
+    const visibleAuthorCount = 4;
+    const displayedAuthors = autores.slice(0, visibleAuthorCount);
+    const hasMoreAuthors = autores.length > visibleAuthorCount;
+
+    const openAuthorModal = () => setShowAuthorModal(true);
+    const closeAuthorModal = () => setShowAuthorModal(false);
 
     // Cargar comentarios al iniciar
     useEffect(() => {
@@ -278,7 +285,7 @@ export default function AuthorFilter({
                     </div>
 
                     <div className="filter-options">
-                        {autores.map((autor) => (
+                        {displayedAuthors.map((autor) => (
                             <label key={autor} className="filter-option">
                                 <input
                                     type="checkbox"
@@ -289,7 +296,46 @@ export default function AuthorFilter({
                             </label>
                         ))}
                     </div>
+
+                    {hasMoreAuthors && (
+                        <button
+                            type="button"
+                            className="filter-more-authors"
+                            onClick={openAuthorModal}
+                        >
+                            Más autores ({autores.length - visibleAuthorCount})
+                        </button>
+                    )}
                 </div>
+
+                {showAuthorModal && (
+                    <div className="authors-modal-backdrop" role="dialog" aria-modal="true">
+                        <div className="authors-modal-content">
+                            <div className="authors-modal-header">
+                                <div>
+                                    <h3>Todos los autores</h3>
+                                    <p className="filter-summary">Selecciona los autores que quieras ver</p>
+                                </div>
+                                <button type="button" className="close-modal" onClick={closeAuthorModal}>
+                                    Cerrar
+                                </button>
+                            </div>
+
+                            <div className="filter-options modal-author-list">
+                                {autores.map((autor) => (
+                                    <label key={autor} className="filter-option">
+                                        <input
+                                            type="checkbox"
+                                            checked={autorSelected.has(autor)}
+                                            onChange={(e) => handleAutorChange(autor, e.target.checked)}
+                                        />
+                                        <span>{autor}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Galería de Poemas */}
                 <section className="galeria-poemas-grid">
