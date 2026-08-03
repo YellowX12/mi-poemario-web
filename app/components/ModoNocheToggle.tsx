@@ -17,6 +17,18 @@ export default function ModoNocheToggle() {
         <button
             type="button"
             className="modo-noche-boton"
+            style={{
+                position: 'fixed',
+                bottom: '24px',
+                left: '24px',
+                zIndex: 9999,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '48px',
+                minWidth: '150px',
+                textAlign: 'center',
+            }}
             onClick={() => setModoNoche(prev => !prev)}
         >
             {modoNoche ? 'Modo claro' : 'Modo noche'}
