@@ -1,0 +1,25 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+
+export default function ModoNocheToggle() {
+    const [modoNoche, setModoNoche] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return window.localStorage.getItem('modo-noche') === 'true';
+    });
+
+    useEffect(() => {
+        document.documentElement.classList.toggle('modo-noche', modoNoche);
+        window.localStorage.setItem('modo-noche', String(modoNoche));
+    }, [modoNoche]);
+
+    return (
+        <button
+            type="button"
+            className="modo-noche-boton"
+            onClick={() => setModoNoche(prev => !prev)}
+        >
+            {modoNoche ? 'Modo claro' : 'Modo noche'}
+        </button>
+    );
+}

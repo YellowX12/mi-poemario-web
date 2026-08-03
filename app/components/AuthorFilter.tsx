@@ -50,6 +50,7 @@ export default function AuthorFilter({
     const [loadingLikes, setLoadingLikes] = useState<Set<number>>(new Set());
     const [poemasActualizados, setPoemasActualizados] = useState<Map<number, Poema>>(new Map());
     const [showAuthorModal, setShowAuthorModal] = useState(false);
+    const [expandedPoemModal, setExpandedPoemModal] = useState<number | null>(null);
     const visibleAuthorCount = 4;
     const displayedAuthors = autores.slice(0, visibleAuthorCount);
     const hasMoreAuthors = autores.length > visibleAuthorCount;
@@ -337,6 +338,42 @@ export default function AuthorFilter({
                     </div>
                 )}
 
+                {/* Modal de Lectura Completa */}
+                {expandedPoemModal !== null && (() => {
+                    const poemComplete = getPoema(expandedPoemModal);
+                    return (
+                        <div className="expanded-poem-modal-backdrop" role="dialog" aria-modal="true">
+                            <div className="expanded-poem-modal">
+                                <div className="expanded-poem-header">
+                                    <div>
+                                        <h2 className="expanded-poem-title">{poemComplete.titulo}</h2>
+                                        <p className="expanded-poem-author">Por: <strong>{poemComplete.autor || `Usuario ${poemComplete.user_id}`}</strong></p>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        className="close-expanded-modal" 
+                                        onClick={() => setExpandedPoemModal(null)}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="expanded-poem-content">
+                                    <p className="expanded-poem-text">{poemComplete.contenido}</p>
+                                </div>
+                                <div className="expanded-poem-actions">
+                                    <button
+                                        type="button"
+                                        className="boton boton-primario"
+                                        onClick={() => setExpandedPoemModal(null)}
+                                    >
+                                        Minimizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
                 {/* Galería de Poemas */}
                 <section className="galeria-poemas-grid">
                     {poemasFiltered.length === 0 ? (
@@ -377,10 +414,10 @@ export default function AuthorFilter({
                                                     <p className="texto-poema">{contentToShow}</p>
                                                     {needsTruncation && (
                                                         <button
-                                                            onClick={() => toggleExpand(poema.id)}
+                                                            onClick={() => setExpandedPoemModal(poema.id)}
                                                             className="boton-enlace"
                                                         >
-                                                            {isExpanded ? 'Leer menos' : 'Leer más'}
+                                                            Leer más →
                                                         </button>
                                                     )}
                                                 </div>

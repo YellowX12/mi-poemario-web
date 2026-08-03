@@ -1,6 +1,7 @@
 import { db } from '../../../lib/db';
 import { redirect } from 'next/navigation';
 import { obtenerSesion, esAdmin } from '../../../lib/auth';
+import ModoNocheToggle from '../../components/ModoNocheToggle';
 
 interface Poema {
     id: number;
@@ -80,43 +81,55 @@ export default async function EditarPoema({ params }: { params: Promise<{ id: st
     // Usamos defaultValue para que los cuadros de texto aparezcan pre-llenados con tu poema
     return (
         <main className="contenedor">
-            <header className="portada" style={{ marginBottom: '40px', marginTop: '5vh' }}>
-                <h1 className="titulo-poemario">Editar Poema</h1>
-                <p className="autor">Modifica tus versos</p>
-            </header>
+            <ModoNocheToggle />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px', margin: '0 auto' }}>
-                <form action={actualizarPoema} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <input 
-                        type="text" 
-                        name="titulo" 
-                        defaultValue={poema.titulo} 
-                        required 
-                        style={{ padding: '15px', fontSize: '1.2rem', fontFamily: 'inherit', border: '1px solid #ddd', borderRadius: '4px', outline: 'none' }}
-                    />
-                    <textarea 
-                        name="contenido" 
-                        defaultValue={poema.contenido} 
-                        required 
-                        rows={15}
-                        style={{ padding: '15px', fontSize: '1.2rem', fontFamily: 'inherit', border: '1px solid #ddd', borderRadius: '4px', resize: 'vertical', outline: 'none' }}
-                    ></textarea>
-                    <button 
-                        type="submit" 
-                        style={{ padding: '15px', fontSize: '1.2rem', backgroundColor: '#222', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color 0.3s' }}
-                    >
-                        Guardar Cambios
-                    </button>
-                </form>
-                <form action={borrarPoema} style={{ display: 'inline-flex', justifyContent: 'flex-end' }}>
-                    <button 
-                        type="submit" 
-                        style={{ padding: '15px', fontSize: '1.2rem', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color 0.3s' }}
-                    >
-                        Borrar Poema
-                    </button>
-                </form>
-            </div>
+            <section className="editor-card">
+                <header className="editor-header">
+                    <div>
+                        <h1 className="titulo-poemario">Editar Poema</h1>
+                        <p className="autor">Modifica tus versos y dale ritmo a tus líneas.</p>
+                    </div>
+                    <p className="nota-accesible">Un espacio limpio y cálido para leer y escribir.</p>
+                </header>
+
+                <div className="editor-body">
+                    <form action={actualizarPoema} className="editor-form">
+                        <label className="form-label">
+                            <span>Título</span>
+                            <input
+                                type="text"
+                                name="titulo"
+                                defaultValue={poema.titulo}
+                                required
+                                className="input-text"
+                            />
+                        </label>
+
+                        <label className="form-label">
+                            <span>Contenido</span>
+                            <textarea
+                                name="contenido"
+                                defaultValue={poema.contenido}
+                                required
+                                rows={14}
+                                className="textarea-content"
+                            />
+                        </label>
+
+                        <div className="editor-actions">
+                            <button type="submit" className="boton boton-primario boton-guardar">
+                                Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+
+                    <form action={borrarPoema} className="borrar-form">
+                        <button type="submit" className="boton boton-secundario boton-borrar">
+                            Borrar poema
+                        </button>
+                    </form>
+                </div>
+            </section>
         </main>
     );
 }
